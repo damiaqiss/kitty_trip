@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kitty to Penang 🐾</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,600;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <p class="hero-eyebrow">TRIP PLANNER UNTUK JAGUAR SEKALIAN</p>
+    <h1 class="hero-title">kitty's web</h1>
+    <p class="hero-sub">lima sekawan nak berjalan</p>
+    <div class="member-row" id="memberRow"></div>
+  </div>
+  <svg class="hero-motif" viewBox="0 0 1200 80" preserveAspectRatio="none">
+    <path d="M0,40 C150,80 350,0 600,40 C850,80 1050,0 1200,40 L1200,80 L0,80 Z" />
+  </svg>
+</header>
+
+<main>
+
+  <!-- ACADEMIC CALENDAR -->
+  <section class="section" id="academic">
+    <div class="section-head">
+      <h2>Academic Calendar</h2>
+      <p>Submit your semester break dates for your own university.</p>
+    </div>
+
+    <div class="uni-tabs" id="uniTabs">
+      <button class="uni-tab active" data-uni="IPG">IPG</button>
+      <button class="uni-tab" data-uni="UUM">UUM</button>
+      <button class="uni-tab" data-uni="UKM">UKM</button>
+      <button class="uni-tab" data-uni="USM">USM</button>
+    </div>
+
+    <form class="card form-card" id="academicForm">
+      <div class="form-row">
+        <label>Name
+          <select id="academicMember" required></select>
+        </label>
+        <label>From
+          <input type="date" id="academicStart" required>
+        </label>
+        <label>To
+          <input type="date" id="academicEnd" required>
+        </label>
+      </div>
+      <label>Note (optional)
+        <input type="text" id="academicNote" placeholder="e.g. mid-semester break">
+      </label>
+      <label>Academic calendar file — image PLIS
+        <input type="file" id="academicFile" accept="image/*,application/pdf">
+      </label>
+      <button type="submit" class="btn-primary">Add date</button>
+    </form>
+
+    <ul class="entry-list" id="academicList"></ul>
+  </section>
+
+  <!-- DATE VOTING -->
+  <section class="section" id="voting">
+    <div class="section-head">
+      <h2>Pick Travel Dates</h2>
+      <p>Everyone picks the dates that work for them. The date with the most votes wins.</p>
+    </div>
+
+    <div class="card form-card">
+      <label>Your name
+        <select id="voterSelect"></select>
+      </label>
+      <label>Pick a date
+        <input type="date" id="voteDate">
+      </label>
+      <button class="btn-primary" id="voteBtn">Vote for this date</button>
+    </div>
+
+    <div class="vote-board" id="voteBoard"></div>
+  </section>
+
+  <!-- WISHLIST -->
+  <section class="section" id="wishlist">
+    <div class="section-head">
+      <h2>Places Wishlist</h2>
+      <p>Where do you want to go in Penang? Add a place, who suggested it, and what food to try.</p>
+    </div>
+
+    <form class="card form-card" id="wishlistForm">
+      <div class="form-row">
+        <label>Name
+          <select id="wishMember" required></select>
+        </label>
+        <label>Place
+          <input type="text" id="wishPlace" placeholder="e.g. Gurney Drive" required>
+        </label>
+      </div>
+      <label>Food to try
+        <input type="text" id="wishFood" placeholder="e.g. Char Kuey Teow">
+      </label>
+      <label>Note (optional)
+        <input type="text" id="wishNote" placeholder="reason / other suggestions">
+      </label>
+      <button type="submit" class="btn-primary">Add to wishlist</button>
+    </form>
+
+    <div class="wishlist-grid" id="wishlistGrid"></div>
+  </section>
+
+</main>
+
+<!-- WISHLIST POPUP -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal-card" id="modalCard">
+    <button class="modal-close" id="modalClose">&times;</button>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<footer class="footer">
+  <p>made with 🐾 by Kitty</p>
+</footer>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
