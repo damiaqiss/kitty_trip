@@ -14,6 +14,9 @@ function populateMemberDropdowns() {
     document.getElementById("academicMember"),
     document.getElementById("voterSelect"),
     document.getElementById("wishMember"),
+    document.getElementById("itineraryMember"),
+    document.getElementById("photoMember"),
+    document.getElementById("themeMember"),
   ];
   selects.forEach((sel) => {
     sel.innerHTML = MEMBERS.map((m) => `<option value="${m}">${m}</option>`).join("");
@@ -27,6 +30,21 @@ function renderMemberChips() {
 
 populateMemberDropdowns();
 renderMemberChips();
+
+// ---- PAGE NAVIGATION ----
+document.getElementById("pageNav").addEventListener("click", (e) => {
+  const btn = e.target.closest(".page-nav-btn");
+  if (!btn) return;
+  const page = btn.dataset.page;
+
+  document.querySelectorAll(".page-nav-btn").forEach((b) => b.classList.remove("active"));
+  btn.classList.add("active");
+
+  document.querySelectorAll(".page").forEach((p) => p.classList.remove("active"));
+  document.getElementById(`page-${page}`).classList.add("active");
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
 
 // ---- UNIVERSITY TABS ----
 document.getElementById("uniTabs").addEventListener("click", (e) => {
@@ -64,10 +82,14 @@ document.getElementById("academicForm").addEventListener("submit", async (e) => 
 
     if (file) {
       if (file.type === "application/pdf") {
-        if (file.size > 900 * 1024) {
-          throw new Error("This PDF is too large (max ~900KB). Try compressing it first, or upload a screenshot image instead.");
+        if (file.size > 650 * 1024) {
+          throw new Error("This PDF is too large (max ~650KB after compression). Please compress the PDF first (try ilovepdf.com/compress_pdf), or upload a screenshot image instead.");
         }
-        entry.fileData = await fileToDataUrl(file);
+        const dataUrl = await fileToDataUrl(file);
+        if (dataUrl.length > 1000000) {
+          throw new Error("This PDF is still too large to save. Please compress it further or upload a screenshot image instead.");
+        }
+        entry.fileData = dataUrl;
         entry.fileType = "pdf";
         entry.fileName = file.name;
       } else if (file.type.startsWith("image/")) {
@@ -153,7 +175,7 @@ async function loadAcademicEntries() {
       } else if (d.fileData) {
         thumb = `<img src="${d.fileData}" class="entry-thumb" data-full="${d.fileData}" alt="Calendar ${d.member}">`;
       }
-      return `<li class="entry-item"><b>${d.member}</b> — ${formatDate(d.start)} to ${formatDate(d.end)}${d.note ? ` <span style="color:rgba(42,16,19,0.55)">(${d.note})</span>` : ""}${thumb}</li>`;
+      return `<li class="entry-item" data-id="${doc.id}"><div><b>${d.member}</b> — ${formatDate(d.start)} to ${formatDate(d.end)}${d.note ? ` <span style="color:rgba(42,16,19,0.55)">(${d.note})</span>` : ""}${thumb}</div><button class="delete-btn" data-id="${doc.id}" title="Delete">✕</button></li>`;
     })
     .join("");
 
@@ -161,6 +183,14 @@ async function loadAcademicEntries() {
     img.addEventListener("click", () => {
       document.getElementById("modalBody").innerHTML = `<img src="${img.dataset.full}" style="width:100%;border-radius:8px;">`;
       document.getElementById("modalBackdrop").classList.add("open");
+    });
+  });
+
+  list.querySelectorAll(".delete-btn").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      if (!confirm("Delete this date entry?")) return;
+      await db.collection("academicCalendar").doc(btn.dataset.id).delete();
+      loadAcademicEntries();
     });
   });
 }
@@ -198,16 +228,30 @@ async function loadVotes() {
   board.innerHTML = rows
     .map((r) => {
       const isWinner = r.voters.length === maxVotes && maxVotes > 0;
+      const nameChips = r.voters
+        .map((v) => `<span class="voter-name" data-date="${r.date}" data-voter="${v}" title="Click to remove your vote">${v}</span>`)
+        .join(", ");
       return `
-        <div class="vote-row ${isWinner ? "winner" : ""}">
+        <div class="vote-row ${isWinner ? "winner" : "losing"}">
           <div>
-            <div class="vote-date">${formatDate(r.date)} ${isWinner ? '<span class="winner-tag">WINNING</span>' : ""}</div>
-            <div class="vote-names">${r.voters.join(", ")}</div>
+            <div class="vote-date">${formatDate(r.date)} ${isWinner ? '<span class="winner-tag">WINNING</span>' : '<span class="losing-tag">LOSING</span>'}</div>
+            <div class="vote-names">${nameChips}</div>
           </div>
           <span class="vote-count">${r.voters.length} vote${r.voters.length === 1 ? "" : "s"}</span>
         </div>`;
     })
     .join("");
+
+  board.querySelectorAll(".voter-name").forEach((el) => {
+    el.addEventListener("click", async () => {
+      if (!confirm(`Remove ${el.dataset.voter}'s vote for ${formatDate(el.dataset.date)}?`)) return;
+      const ref = db.collection("dateVotes").doc(el.dataset.date);
+      const doc = await ref.get();
+      const voters = (doc.data().voters || []).filter((v) => v !== el.dataset.voter);
+      await ref.set({ voters }, { merge: true });
+      loadVotes();
+    });
+  });
 }
 
 // ---- WISHLIST ----
@@ -245,16 +289,29 @@ async function loadWishlist() {
       const d = doc.data();
       return `
         <div class="wish-card" data-id="${doc.id}">
-          <h3>${d.place}</h3>
-          <p>suggested by ${d.member}</p>
+          <div>
+            <h3>${d.place}</h3>
+            <p>suggested by ${d.member}</p>
+          </div>
+          <button class="delete-btn" data-id="${doc.id}" title="Delete">✕</button>
         </div>`;
     })
     .join("");
 
   grid.querySelectorAll(".wish-card").forEach((card) => {
-    card.addEventListener("click", async () => {
+    card.addEventListener("click", async (e) => {
+      if (e.target.closest(".delete-btn")) return;
       const docSnap = await db.collection("wishlist").doc(card.dataset.id).get();
       openWishModal(docSnap.data());
+    });
+  });
+
+  grid.querySelectorAll(".delete-btn").forEach((btn) => {
+    btn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      if (!confirm("Remove this from the wishlist?")) return;
+      await db.collection("wishlist").doc(btn.dataset.id).delete();
+      loadWishlist();
     });
   });
 }
@@ -285,7 +342,290 @@ function formatDate(isoStr) {
   return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 }
 
+// ---- PAYMENT TRACKER ----
+document.getElementById("paymentForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const title = document.getElementById("paymentTitle").value.trim();
+  const amount = parseFloat(document.getElementById("paymentAmount").value);
+
+  await db.collection("payments").add({
+    title,
+    amount,
+    paidBy: [],
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+  });
+
+  e.target.reset();
+  loadPayments();
+});
+
+async function loadPayments() {
+  const list = document.getElementById("paymentList");
+  list.innerHTML = `<p class="empty-note">Loading...</p>`;
+
+  const snap = await db.collection("payments").orderBy("createdAt", "asc").get();
+  if (snap.empty) {
+    list.innerHTML = `<p class="empty-note">No payment items yet. Add the first one, e.g. hotel deposit.</p>`;
+    return;
+  }
+
+  list.innerHTML = snap.docs
+    .map((doc) => {
+      const d = doc.data();
+      const paidBy = d.paidBy || [];
+      const chips = MEMBERS.map((m) => {
+        const paid = paidBy.includes(m);
+        return `<span class="payer-chip ${paid ? "paid" : ""}" data-id="${doc.id}" data-member="${m}">${m}</span>`;
+      }).join("");
+      return `
+        <div class="payment-card">
+          <div class="payment-top">
+            <span class="payment-title">${d.title}</span>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span class="payment-amount">RM ${Number(d.amount).toFixed(2)} / person</span>
+              <button class="delete-btn" data-id="${doc.id}" title="Delete">✕</button>
+            </div>
+          </div>
+          <div class="payment-progress">${paidBy.length} / ${MEMBERS.length} paid</div>
+          <div class="payer-chips">${chips}</div>
+        </div>`;
+    })
+    .join("");
+
+  list.querySelectorAll(".delete-btn").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      if (!confirm("Delete this payment item?")) return;
+      await db.collection("payments").doc(btn.dataset.id).delete();
+      loadPayments();
+    });
+  });
+
+  list.querySelectorAll(".payer-chip").forEach((chip) => {
+    chip.addEventListener("click", async () => {
+      const id = chip.dataset.id;
+      const member = chip.dataset.member;
+      const ref = db.collection("payments").doc(id);
+      const doc = await ref.get();
+      const paidBy = doc.data().paidBy || [];
+      const updated = paidBy.includes(member)
+        ? paidBy.filter((m) => m !== member)
+        : [...paidBy, member];
+      await ref.update({ paidBy: updated });
+      loadPayments();
+    });
+  });
+}
+
+// ---- TENTATIVE ITINERARY ----
+let activeDay = 1;
+let itineraryDays = [1];
+
+function renderDayTabs() {
+  const tabs = document.getElementById("dayTabs");
+  tabs.innerHTML = itineraryDays
+    .map((d) => `<button class="uni-tab ${d === activeDay ? "active" : ""}" data-day="${d}">Day ${d}</button>`)
+    .join("");
+  tabs.querySelectorAll(".uni-tab").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      activeDay = Number(btn.dataset.day);
+      renderDayTabs();
+      loadItinerary();
+      loadThemes();
+    });
+  });
+}
+
+document.getElementById("addDayBtn").addEventListener("click", () => {
+  const nextDay = Math.max(...itineraryDays) + 1;
+  itineraryDays.push(nextDay);
+  activeDay = nextDay;
+  renderDayTabs();
+  loadItinerary();
+  loadThemes();
+});
+
+document.getElementById("addThemeBtn").addEventListener("click", async () => {
+  const theme = document.getElementById("themeInput").value.trim();
+  const member = document.getElementById("themeMember").value;
+  if (!theme) return;
+
+  await db.collection("dayThemes").add({
+    day: activeDay,
+    theme,
+    member,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+  });
+
+  document.getElementById("themeInput").value = "";
+  loadThemes();
+});
+
+async function loadThemes() {
+  const list = document.getElementById("themeChipList");
+  list.innerHTML = `<p class="empty-note">Loading...</p>`;
+
+  const snap = await db
+    .collection("dayThemes")
+    .where("day", "==", activeDay)
+    .orderBy("createdAt", "asc")
+    .get();
+
+  if (snap.empty) {
+    list.innerHTML = `<p class="empty-note">No theme ideas for Day ${activeDay} yet.</p>`;
+    return;
+  }
+
+  list.innerHTML = snap.docs
+    .map((doc) => {
+      const d = doc.data();
+      return `<span class="theme-chip"><b>${d.theme}</b> — ${d.member} <button class="delete-btn" data-id="${doc.id}" title="Delete">✕</button></span>`;
+    })
+    .join("");
+
+  list.querySelectorAll(".delete-btn").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      if (!confirm("Delete this theme idea?")) return;
+      await db.collection("dayThemes").doc(btn.dataset.id).delete();
+      loadThemes();
+    });
+  });
+}
+
+document.getElementById("itineraryForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const slot = document.getElementById("itinerarySlot").value;
+  const member = document.getElementById("itineraryMember").value;
+  const activity = document.getElementById("itineraryActivity").value.trim();
+
+  await db.collection("itinerary").add({
+    day: activeDay,
+    slot,
+    activity,
+    addedBy: member,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+  });
+
+  e.target.reset();
+  loadItinerary();
+});
+
+async function loadItinerary() {
+  const board = document.getElementById("itineraryBoard");
+  board.innerHTML = `<p class="empty-note">Loading...</p>`;
+
+  const snap = await db
+    .collection("itinerary")
+    .where("day", "==", activeDay)
+    .orderBy("createdAt", "asc")
+    .get();
+
+  if (snap.empty) {
+    board.innerHTML = `<p class="empty-note">No activities planned for Day ${activeDay} yet.</p>`;
+    return;
+  }
+
+  const slotOrder = ["Morning", "Afternoon", "Evening", "Night"];
+  const bySlot = {};
+  snap.docs.forEach((doc) => {
+    const d = doc.data();
+    if (!bySlot[d.slot]) bySlot[d.slot] = [];
+    bySlot[d.slot].push({ id: doc.id, ...d });
+  });
+
+  board.innerHTML = slotOrder
+    .filter((slot) => bySlot[slot])
+    .map((slot) => {
+      const items = bySlot[slot]
+        .map((d) => `<div class="itinerary-item"><div>${d.activity} <span>— added by ${d.addedBy}</span></div><button class="delete-btn" data-id="${d.id}" title="Delete">✕</button></div>`)
+        .join("");
+      return `<div class="slot-group"><div class="slot-label">${slot}</div>${items}</div>`;
+    })
+    .join("");
+
+  board.querySelectorAll(".delete-btn").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      if (!confirm("Delete this activity?")) return;
+      await db.collection("itinerary").doc(btn.dataset.id).delete();
+      loadItinerary();
+    });
+  });
+}
+
+// ---- TRIP CORE PHOTO GALLERY ----
+document.getElementById("photoForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const submitBtn = e.target.querySelector("button[type=submit]");
+  const member = document.getElementById("photoMember").value;
+  const caption = document.getElementById("photoCaption").value.trim();
+  const file = document.getElementById("photoFile").files[0];
+  if (!file) return;
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Uploading...";
+
+  try {
+    const imageData = await compressImageToDataUrl(file, 700, 0.65);
+    await db.collection("photos").add({
+      imageData,
+      member,
+      caption,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    e.target.reset();
+    loadPhotos();
+  } catch (err) {
+    alert("Failed to upload: " + err.message);
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Upload photo";
+  }
+});
+
+async function loadPhotos() {
+  const grid = document.getElementById("photoGrid");
+  grid.innerHTML = `<p class="empty-note">Loading...</p>`;
+
+  const snap = await db.collection("photos").orderBy("createdAt", "desc").get();
+  if (snap.empty) {
+    grid.innerHTML = `<p class="empty-note">No photos yet. Upload the first one!</p>`;
+    return;
+  }
+
+  grid.innerHTML = snap.docs
+    .map((doc) => {
+      const d = doc.data();
+      return `
+        <div class="photo-card">
+          <img src="${d.imageData}" data-full="${d.imageData}" alt="${d.caption || "Trip photo"}">
+          <button class="delete-btn" data-id="${doc.id}" title="Delete">✕</button>
+          <div class="photo-caption"><b>${d.member}</b>${d.caption ? ` — ${d.caption}` : ""}</div>
+        </div>`;
+    })
+    .join("");
+
+  grid.querySelectorAll(".photo-card img").forEach((img) => {
+    img.addEventListener("click", () => {
+      document.getElementById("modalBody").innerHTML = `<img src="${img.dataset.full}" style="width:100%;border-radius:8px;">`;
+      document.getElementById("modalBackdrop").classList.add("open");
+    });
+  });
+
+  grid.querySelectorAll(".delete-btn").forEach((btn) => {
+    btn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      if (!confirm("Delete this photo?")) return;
+      await db.collection("photos").doc(btn.dataset.id).delete();
+      loadPhotos();
+    });
+  });
+}
+
 // ---- LOAD ON START ----
 loadAcademicEntries();
 loadVotes();
 loadWishlist();
+loadPayments();
+renderDayTabs();
+loadItinerary();
+loadThemes();
+loadPhotos();

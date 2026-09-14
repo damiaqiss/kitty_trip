@@ -200,8 +200,20 @@ input:focus, select:focus {
   border: 2px solid var(--gold);
   background: linear-gradient(90deg, #FFF9EE, white);
 }
+.vote-row.losing {
+  border: 1px solid rgba(178, 34, 52, 0.25);
+  background: linear-gradient(90deg, #FDF0F0, white);
+}
+.losing-tag {
+  color: #B22234;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
 .vote-date { font-weight: 600; color: var(--maroon); }
 .vote-names { font-size: 0.85rem; color: rgba(42, 16, 19, 0.65); }
+.voter-name { cursor: pointer; text-decoration: underline dotted; }
+.voter-name:hover { color: var(--maroon); }
 .vote-count {
   background: var(--maroon);
   color: white;
@@ -269,6 +281,182 @@ input:focus, select:focus {
 .modal-card dl { margin: 0; }
 .modal-card dt { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.03em; color: rgba(42,16,19,0.5); margin-top: 12px; }
 .modal-card dd { margin: 2px 0 0; font-size: 0.98rem; }
+
+/* PAYMENT TRACKER */
+.payment-list { display: grid; gap: 12px; }
+.payment-card {
+  background: white;
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  box-shadow: var(--shadow);
+}
+.payment-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 10px;
+}
+.payment-title { font-weight: 600; color: var(--maroon); font-size: 1.05rem; }
+.payment-amount { font-size: 0.9rem; color: rgba(42,16,19,0.6); }
+.payment-progress {
+  font-size: 0.75rem;
+  color: var(--gold);
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+.payer-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.payer-chip {
+  border: 1px solid var(--line);
+  background: var(--cream);
+  color: var(--ink);
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  user-select: none;
+}
+.payer-chip.paid {
+  background: var(--maroon);
+  color: white;
+  border-color: var(--maroon);
+}
+.payer-chip.paid::before { content: "✓ "; }
+
+/* ITINERARY */
+.add-day-btn {
+  border: 1px dashed var(--maroon);
+  background: none;
+  color: var(--maroon);
+  padding: 8px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin-bottom: 20px;
+}
+.itinerary-board { display: grid; gap: 14px; }
+.slot-group { }
+.slot-label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--gold);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.itinerary-item {
+  background: white;
+  border-radius: 10px;
+  padding: 10px 16px;
+  box-shadow: var(--shadow);
+  border-left: 3px solid var(--maroon-light);
+  margin-bottom: 8px;
+  font-size: 0.92rem;
+}
+.itinerary-item span { color: rgba(42,16,19,0.55); font-size: 0.8rem; }
+
+.theme-chip-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.theme-chip {
+  background: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.theme-chip b { color: var(--maroon); }
+.theme-chip .delete-btn { width: 18px; height: 18px; font-size: 0.7rem; }
+
+/* PAGE NAV */
+.page-nav {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 18px 20px;
+  background: var(--cream-deep);
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+.page-nav-btn {
+  border: none;
+  background: none;
+  color: var(--maroon);
+  padding: 8px 22px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+.page-nav-btn.active {
+  background: var(--maroon);
+  color: white;
+}
+.page { display: none; }
+.page.active { display: block; }
+
+/* TRIP CORE PHOTO GALLERY */
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 14px;
+}
+.photo-card {
+  background: white;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  position: relative;
+}
+.photo-card img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  display: block;
+  cursor: pointer;
+}
+.photo-caption {
+  padding: 8px 10px;
+  font-size: 0.8rem;
+  color: rgba(42,16,19,0.7);
+}
+.photo-caption b { color: var(--maroon); }
+
+/* DELETE BUTTON (shared) */
+.delete-btn {
+  border: none;
+  background: rgba(107, 15, 26, 0.08);
+  color: var(--maroon);
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 0.8rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.delete-btn:hover { background: var(--maroon); color: white; }
+.photo-card .delete-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: rgba(255,255,255,0.9);
+}
+.entry-item, .itinerary-item, .payment-card, .wish-card {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.entry-item > div, .itinerary-item > div, .wish-card > div { flex: 1; }
 
 .footer {
   text-align: center;

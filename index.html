@@ -22,7 +22,16 @@
   </svg>
 </header>
 
+<nav class="page-nav" id="pageNav">
+  <button class="page-nav-btn active" data-page="main">Main</button>
+  <button class="page-nav-btn" data-page="payment">Payment</button>
+  <button class="page-nav-btn" data-page="itinerary">Itinerary</button>
+  <button class="page-nav-btn" data-page="tripcore">Trip Core</button>
+</nav>
+
 <main>
+
+<div class="page active" id="page-main">
 
   <!-- ACADEMIC CALENDAR -->
   <section class="section" id="academic">
@@ -109,6 +118,113 @@
 
     <div class="wishlist-grid" id="wishlistGrid"></div>
   </section>
+
+  </div>
+  <div class="page" id="page-payment">
+
+  <!-- PAYMENT TRACKER -->
+  <section class="section" id="payments">
+    <div class="section-head">
+      <h2>Payment Tracker</h2>
+      <p>Track trip costs (deposit, transport, etc.) and who has paid.</p>
+    </div>
+
+    <form class="card form-card" id="paymentForm">
+      <div class="form-row">
+        <label>Item
+          <input type="text" id="paymentTitle" placeholder="e.g. Hotel deposit" required>
+        </label>
+        <label>Amount (RM)
+          <input type="number" id="paymentAmount" step="0.01" min="0" placeholder="e.g. 50" required>
+        </label>
+      </div>
+      <button type="submit" class="btn-primary">Add payment item</button>
+    </form>
+
+    <div class="payment-list" id="paymentList"></div>
+  </section>
+
+  </div>
+  <div class="page" id="page-itinerary">
+
+  <!-- TENTATIVE ITINERARY -->
+  <section class="section" id="itinerary">
+    <div class="section-head">
+      <h2>Tentative Itinerary</h2>
+      <p>tepati masa maka Allah sayang</p>
+    </div>
+
+    <div class="uni-tabs" id="dayTabs"></div>
+    <button class="add-day-btn" id="addDayBtn">+ Add day</button>
+
+    <div class="card form-card">
+      <div class="section-head" style="margin-bottom: 12px;">
+        <h2 style="font-size: 1.1rem;">Theme suggestions </h2>
+      </div>
+      <div class="form-row">
+        <label>Theme idea
+          <input type="text" id="themeInput" placeholder="e.g. Heritage Walk, Beach Day">
+        </label>
+        <label>Suggested by
+          <select id="themeMember"></select>
+        </label>
+      </div>
+      <button type="button" class="btn-primary" id="addThemeBtn">Add theme idea</button>
+      <div class="theme-chip-list" id="themeChipList" style="margin-top: 14px;"></div>
+    </div>
+
+    <form class="card form-card" id="itineraryForm">
+      <div class="form-row">
+        <label>Time slot
+          <select id="itinerarySlot">
+            <option value="Morning">Morning</option>
+            <option value="Afternoon">Afternoon</option>
+            <option value="Evening">Evening</option>
+            <option value="Night">Night</option>
+          </select>
+        </label>
+        <label>Added by
+          <select id="itineraryMember"></select>
+        </label>
+      </div>
+      <label>Activity
+        <input type="text" id="itineraryActivity" placeholder="e.g. Check in at hotel" required>
+      </label>
+      <button type="submit" class="btn-primary">Add activity</button>
+    </form>
+
+    <div class="itinerary-board" id="itineraryBoard"></div>
+  </section>
+
+  </div>
+  <div class="page" id="page-tripcore">
+
+  <!-- TRIP CORE PHOTO GALLERY -->
+  <section class="section" id="tripcore">
+    <div class="section-head">
+      <h2>Trip Core</h2>
+      <p>Share photos and moments from the trip planning (or the trip itself)!</p>
+    </div>
+
+    <form class="card form-card" id="photoForm">
+      <div class="form-row">
+        <label>Name
+          <select id="photoMember"></select>
+        </label>
+        <label>Caption (optional)
+          <input type="text" id="photoCaption" placeholder="e.g. Squad planning session">
+        </label>
+      </div>
+      <label>Photo
+        <input type="file" id="photoFile" accept="image/*" required>
+      </label>
+      <button type="submit" class="btn-primary">Upload photo</button>
+    </form>
+
+    <div class="photo-grid" id="photoGrid"></div>
+  </section>
+
+  </div>
 
 </main>
 
