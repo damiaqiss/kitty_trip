@@ -229,8 +229,8 @@ async function loadVotes() {
     .map((r) => {
       const isWinner = r.voters.length === maxVotes && maxVotes > 0;
       const nameChips = r.voters
-        .map((v) => `<span class="voter-name" data-date="${r.date}" data-voter="${v}" title="Click to remove your vote">${v}</span>`)
-        .join(", ");
+        .map((v) => `<span class="voter-chip">${v} <button class="delete-btn voter-remove-btn" data-date="${r.date}" data-voter="${v}" title="Remove vote">✕</button></span>`)
+        .join(" ");
       return `
         <div class="vote-row ${isWinner ? "winner" : "losing"}">
           <div>
@@ -242,7 +242,7 @@ async function loadVotes() {
     })
     .join("");
 
-  board.querySelectorAll(".voter-name").forEach((el) => {
+  board.querySelectorAll(".voter-remove-btn").forEach((el) => {
     el.addEventListener("click", async () => {
       if (!confirm(`Remove ${el.dataset.voter}'s vote for ${formatDate(el.dataset.date)}?`)) return;
       const ref = db.collection("dateVotes").doc(el.dataset.date);

@@ -211,9 +211,16 @@ input:focus, select:focus {
   letter-spacing: 0.03em;
 }
 .vote-date { font-weight: 600; color: var(--maroon); }
-.vote-names { font-size: 0.85rem; color: rgba(42, 16, 19, 0.65); }
-.voter-name { cursor: pointer; text-decoration: underline dotted; }
-.voter-name:hover { color: var(--maroon); }
+.vote-names { font-size: 0.85rem; color: rgba(42, 16, 19, 0.65); display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.voter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--cream);
+  border-radius: 999px;
+  padding: 3px 6px 3px 10px;
+}
+.voter-chip .delete-btn { width: 16px; height: 16px; font-size: 0.6rem; }
 .vote-count {
   background: var(--maroon);
   color: white;
